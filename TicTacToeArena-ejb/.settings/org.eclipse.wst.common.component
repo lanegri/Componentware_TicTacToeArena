@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="TicTacToeArena-ejb">
+        <wb-resource deploy-path="/" source-path="/ejbModule" tag="defaultRootSource"/>
+        <property name="java-output-path" value="/TicTacToeArena-ejb/build/classes"/>
+        <property name="ClientProject" value="TicTacToeArena-common"/>
+        <property name="ClientJARURI" value="TicTacToeArena-common.jar"/>
+    </wb-module>
+</project-modules>
