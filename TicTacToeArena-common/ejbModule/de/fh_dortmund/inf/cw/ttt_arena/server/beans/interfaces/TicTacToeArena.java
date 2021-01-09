@@ -1,6 +1,6 @@
-package de.fh_dortmund.inf.cw.ttt_arena.client.shared;
+package de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces;
 
-public interface TicTacToeArenaHandler {
+public interface TicTacToeArena {
 	public char[][] play(char[][] feld, int i, int j, char player);
 	public boolean isFull(char[][] feld);
 	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char sp);

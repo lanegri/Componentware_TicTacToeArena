@@ -2,97 +2,84 @@ package de.fh_dortmund.inf.cw.ttt_arena.client.ui;
 
 import java.util.Scanner;
 
-//import tictactoe.Spieler;
+//import common.Player;
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ServiceHandler;
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TicTacToeArenaHandler;
 
 public class GameArena {
 	
-	char[][] feld; 
-	int z = 1, s = 1;
-	//Spieler player;
+	public static final char PLAYER_X = 'X';
+	public static final char PLAYER_O = 'O';
+	public static final char NOPLAYER =  ' ';
+	char[][] feld;
+	Scanner sc = new Scanner(System.in);
 	
-	public GameArena(){
+	private ServiceHandler serviceHandler;
+	private TicTacToeArenaHandler tttHandler;
+	
+	public GameArena() {
+		this.serviceHandler = ServiceHandlerHelper.getInstance().getServiceHandler();
+		this.tttHandler = ServiceHandlerHelper.getInstance().getTicTacToeArenaHandler();
+		
 		feld = new char[3][3];
 	}
 	
-	public void spielfeldAusgaben(){
+	public void set(int i, int j, char player) {
+		if(feld[i][j] == ' ')
+			feld[i][j] = player;
+		else
+			System.out.println("Feld ist schon besetzt");
+	}
+	
+	public void _set(int i, int j, char spieler) {
+//	     set(move.x, move.y, spieler);  
+	}
+	/**
+	 * Spielfeld einmalig ausfüllen
+	 */
+	public void fillArena(){
 		for(int i = 0; i < 3; i++){
 			for (int j = 0; j < 3; j++){
 				if(i == 3 && j == 2){
 					feld[i][j] = '_';
 				}
 				else{
-					feld[i][j] = ' ';
+					feld[i][j] = NOPLAYER;
 				}				
 			}
 		}
 	}
-	public void startGame(){
+	
+	/**
+	 *  Spielfeld ausgeben
+	 */
+	public void initArena(){
+		System.out.println( "   +-----+-----+----+");
 		for(int i = 0; i < 3; i++){
 			for (int j = 0; j < 3; j++){
 				System.out.print("   | " + feld[i][j]);
 			}
-			System.out.println("  |" + "\n"  + "   -------------------");
+			System.out.println("  |" + "\n"  + "   +-----+-----+----+");
 		}
-	}
-//	public void sign1(int x1, int y1, Spieler p){
-//		if(feld[x1][y1] == ' ')
-//			feld[x1][y1] = p.getSpieler1();
-//		else
-//			System.out.println("Feld schon besetzt");
-//	}
-//	public void sign2(int x2, int y2, Spieler p){
-//		if(feld[x2][y2] == ' ')
-//			feld[x2][y2] = p.getSpieler2();
-//		else
-//			System.out.println("Feld ist schon besetzt");
-//		//while et message
-//	}
-	
-	public boolean gewonnen(){
-		boolean won = true;
 		
-		for(int i = 0; i < 3; i++){
-			for (int j = 0; j < 3; j++){
-				if(feld[i][j] == 'X'){
-					if(!(i == j)){
-						won = false;
-					}
-				}
-				else if(feld[i][j] == 'O'){
-					won = true;
-				}
-			}
-		}
-		return won;
 	}
 	
-	public static void main(String[] args) {
-		
-		GameArena champs = new GameArena();
-//		Spieler spieler = new Spieler('X', 'O');
-		
-		
-		Scanner sc = new Scanner(System.in);
-		
-		//int z = 1;
-		//System.out.println(z++);
-		System.out.println("   -------------------");
-		champs.spielfeldAusgaben();
-		champs.startGame();
+	public void executeGame(){
+//		getArena();
+		fillArena();
 		
 		do{
-			System.out.println("Spieler1 geben Sie ihre Koordinaten ein\n X");
+			System.out.println("Spieler1 (X)");
 			int x = sc.nextInt();
-			System.out.println("Y");
 			int y = sc.nextInt();
-//			champs.sign1(x, y, spieler);
-			champs.startGame();
-			System.out.println("Spieler2 geben Sie ihre Koordinaten ein\n X");
+			this.feld = tttHandler.play(feld, x, y, 'X');
+			initArena();
+			System.out.println("Spieler2 (O)");
 			int x2 = sc.nextInt();
-			System.out.println("Y");
 			int y2 = sc.nextInt();
-//			champs.sign2(x2, y2, spieler);
-			champs.startGame();
+			this.feld = tttHandler.play(feld, x2, y2, 'O');
+			initArena();
 		}while(true);//(!champs.gewonnen());
-}
+	}
+	
 }

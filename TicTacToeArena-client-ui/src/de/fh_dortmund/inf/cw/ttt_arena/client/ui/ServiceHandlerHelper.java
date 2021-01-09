@@ -3,6 +3,11 @@ package de.fh_dortmund.inf.cw.ttt_arena.client.ui;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ServiceHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TicTacToeArenaHandler;
 
+import java.util.Set;
+
+import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+
 public class ServiceHandlerHelper {
 	
 	private static ServiceHandlerHelper instance;
@@ -11,10 +16,44 @@ public class ServiceHandlerHelper {
 	  
 	private TicTacToeArenaHandler tttHandler;
 	
-	private ServiceHandlerHelper() { 
-		serviceHandler = ServiceHandler.getInstance();
-		tttHandler = (TicTacToeArenaHandler) serviceHandler;
-	}
+//	private ServiceHandlerHelper() { 
+//		serviceHandler = ServiceHandler.getInstance();
+//		tttHandler = (TicTacToeArenaHandler) serviceHandler;
+//	}
+	
+	private ServiceHandlerHelper() {
+	    Reflections reflections = new Reflections(new Object[] { ClasspathHelper.forJavaClassPath() });
+	    if (this.serviceHandler == null) {
+	      Set<Class<? extends ServiceHandler>> set = reflections.getSubTypesOf(ServiceHandler.class);
+	      if (set.size() > 2)
+	        throw new RuntimeException("There are more than one Service-Handler implemented."); 
+	      for (Class<? extends ServiceHandler> tempHandler : set) {
+	        if (this.serviceHandler == null)
+	          try {
+	            this.serviceHandler = (ServiceHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	          } catch (Exception ex) {
+	            throw new RuntimeException("Error while getting the Service-Handler-Instance.");
+	          }  
+	      } 
+	      if (this.serviceHandler == null)
+	        throw new RuntimeException("There is no Service-Handler implemented."); 
+	    } 
+	    Set<Class<? extends TicTacToeArenaHandler>> handlers = reflections.getSubTypesOf(TicTacToeArenaHandler.class);
+	    if (handlers.size() > 1)
+	      throw new RuntimeException("There are more than one TicTacToeArena-Handler implemented."); 
+	    if (handlers.size() > 0) {
+	      Class<? extends TicTacToeArenaHandler> tempHandler = handlers.iterator().next();
+	      if (ServiceHandler.class.isAssignableFrom(tempHandler)) {
+	        try {
+	          this.tttHandler = (TicTacToeArenaHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	        } catch (Exception ex) {
+	          throw new RuntimeException("Error while getting the TicTacToeArena-Handler-Instance.");
+	        } 
+	      } else {
+	        System.out.println("TicTacToeArena-Handler must implement Service-Handler.");
+	      } 
+	    } 
+	  }
 	
 	public static ServiceHandlerHelper getInstance() {
 		if (instance == null) {
@@ -24,11 +63,11 @@ public class ServiceHandlerHelper {
 	}
 	
 	public ServiceHandler getServiceHandler() {
-		return serviceHandler;
+		return this.serviceHandler;
 		
 	}
 	
-	public TicTacToeArenaHandler getUserSessionHandler() {
-		return tttHandler;
+	public TicTacToeArenaHandler getTicTacToeArenaHandler() {
+		return this.tttHandler;
 	}
 }
