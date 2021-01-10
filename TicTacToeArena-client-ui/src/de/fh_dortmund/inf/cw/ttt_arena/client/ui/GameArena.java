@@ -24,16 +24,6 @@ public class GameArena {
 		feld = new char[3][3];
 	}
 	
-	public void set(int i, int j, char player) {
-		if(feld[i][j] == ' ')
-			feld[i][j] = player;
-		else
-			System.out.println("Feld ist schon besetzt");
-	}
-	
-	public void _set(int i, int j, char spieler) {
-//	     set(move.x, move.y, spieler);  
-	}
 	/**
 	 * Spielfeld einmalig ausfüllen
 	 */
@@ -53,7 +43,7 @@ public class GameArena {
 	/**
 	 *  Spielfeld ausgeben
 	 */
-	public void initArena(){
+	public void showArena(){
 		System.out.println( "   +-----+-----+----+");
 		for(int i = 0; i < 3; i++){
 			for (int j = 0; j < 3; j++){
@@ -65,21 +55,31 @@ public class GameArena {
 	}
 	
 	public void executeGame(){
-//		getArena();
+//		showArena();
 		fillArena();
 		
 		do{
 			System.out.println("Spieler1 (X)");
 			int x = sc.nextInt();
 			int y = sc.nextInt();
-			this.feld = tttHandler.play(feld, x, y, 'X');
-			initArena();
+			
+			this.feld = tttHandler.play(feld, x, y, PLAYER_X);
+			if(tttHandler.isWin(this.feld, PLAYER_X)) {
+				System.out.println(PLAYER_X + " hat gewonnen");
+				break;
+			}
+			showArena();
 			System.out.println("Spieler2 (O)");
 			int x2 = sc.nextInt();
 			int y2 = sc.nextInt();
-			this.feld = tttHandler.play(feld, x2, y2, 'O');
-			initArena();
-		}while(true);//(!champs.gewonnen());
+			
+			this.feld = tttHandler.play(feld, x2, y2, PLAYER_O);
+			if(tttHandler.isWin(this.feld, PLAYER_O)) {
+				System.out.println(PLAYER_O + " hat gewonnen");
+				break;
+			}
+			showArena();
+		}while(!tttHandler.isFull(this.feld));
 	}
 	
 }

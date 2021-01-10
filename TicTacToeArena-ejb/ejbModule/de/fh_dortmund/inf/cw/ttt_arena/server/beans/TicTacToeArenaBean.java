@@ -11,19 +11,12 @@ public class TicTacToeArenaBean implements TicTacToeArenaLocal, TicTacToeArenaRe
 	@Override
 	public char[][] play(char[][] feld, int i, int j, char player) {
 		
-		if(!isFull(feld)) {
-			if(feld[i][j] == ' ')
-				feld[i][j] = player;
-			else
-				System.out.println("Feld ist schon besetzt");
-			
-			if(isWin(feld, player)) {
-				System.out.println(player + " hat gewonnen");
-			}
-		}else {
-			System.out.println("Unentschieden");
-		}
 		
+		if(feld[i][j] == ' ')
+			feld[i][j] = player;
+		else
+			System.out.println("Feld ist schon besetzt");
+			
 		return feld;
 	}
 
@@ -55,18 +48,18 @@ public class TicTacToeArenaBean implements TicTacToeArenaLocal, TicTacToeArenaRe
 	};
 	
 	@Override
-	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char sp) {
+	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char player) {
 		char p0 = feld[reihe[0][0]][reihe[0][1]];
 	    char p1 = feld[reihe[1][0]][reihe[1][1]];
 	    char p2 = feld[reihe[2][0]][reihe[2][1]];
-	    return p0 == sp && p1 == sp && p2 == sp;
+	    return p0 == player && p1 == player && p2 == player;
 	}
 
 	@Override
 	public char isWin(char[][] feld) {
 		if(isWin(feld, 'X')) return 'X';
 	     if(isWin(feld, 'O')) return 'O';
-	     return ' ';
+	     return '-';
 	}
 
 	@Override
