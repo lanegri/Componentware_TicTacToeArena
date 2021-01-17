@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_7.xsd" version="7">
+  <module>
+    <ejb>TicTacToeArena-ejb.jar</ejb>
+  </module>
+  <jms-destination>
+    <name>java:global/jms/ObserverTopic</name>
+    <interface-name>javax.jms.Topic</interface-name>
+    <destination-name>ObserverTopic</destination-name>
+  </jms-destination>
+  <jms-destination>
+    <name>java:global/jms/TokenQueue</name>
+    <interface-name>javax.jms.Queue</interface-name>
+    <destination-name>TokenQueue</destination-name>
+  </jms-destination>
+</application>

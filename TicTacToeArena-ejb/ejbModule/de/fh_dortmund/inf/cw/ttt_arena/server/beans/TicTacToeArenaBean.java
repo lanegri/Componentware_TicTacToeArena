@@ -1,12 +1,38 @@
 package de.fh_dortmund.inf.cw.ttt_arena.server.beans;
 
-import javax.ejb.Stateless;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.EJB;
+import javax.ejb.MessageDriven;
+import javax.ejb.Stateful;
+import javax.inject.Inject;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaLocal;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaRemote;
+import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
+import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.Notification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.NotificationType;
 
-@Stateless
+
+@Stateful
 public class TicTacToeArenaBean implements TicTacToeArenaLocal, TicTacToeArenaRemote {
+	
+	
 	
 	@Override
 	public char[][] play(char[][] feld, int i, int j, char player) {

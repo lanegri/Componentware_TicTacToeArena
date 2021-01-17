@@ -1,7 +1,8 @@
-package de.fh_dortmund.inf.cw.shop.client.test;
+package de.fh_dortmund.inf.cw.ttt_arena.client.test;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -21,7 +22,23 @@ public class TicTacToeArenaTest {
 	public static void setUpBeforeClass() throws Exception {
 		serviceHandler = ServiceHandlerImpl.getInstance();
 		feld = new char[3][3];
-		fillArena();
+	}
+	
+	/**
+	 * SetUp: Spielfeld leeren und neues Spiel starten
+	 */
+	@Before
+	public void fillArena(){
+		for(int i = 0; i < 3; i++){
+			for (int j = 0; j < 3; j++){
+				if(i == 3 && j == 2){
+					feld[i][j] = '_';
+				}
+				else{
+					feld[i][j] = NOPLAYER;
+				}				
+			}
+		}
 	}
 	
 	/**
@@ -29,9 +46,8 @@ public class TicTacToeArenaTest {
 	 * @return true
 	 */
 	@Test
-	public void test_playerX_win() {
+	public void test001_playerX_win() {
 		assertTrue(playerX_win());
-		fillArena();
 	}
 	
 	/**
@@ -39,9 +55,8 @@ public class TicTacToeArenaTest {
 	 * @return true
 	 */
 	@Test
-	public void test_playerO_win() {
+	public void test002_playerO_win() {
 		assertTrue(playerO_win());
-		fillArena();
 	}
 	
 	/**
@@ -49,9 +64,8 @@ public class TicTacToeArenaTest {
 	 * @return false
 	 */
 	@Test
-	public void test_draw_full() {
+	public void test003_draw_full() {
 		assertTrue(draw_full());
-		fillArena();
 	}
 	
 	public boolean playerX_win() {
@@ -89,20 +103,4 @@ public class TicTacToeArenaTest {
 	    return serviceHandler.isFull(feld);
 	}
 	
-	public static void fillArena(){
-		for(int i = 0; i < 3; i++){
-			for (int j = 0; j < 3; j++){
-				if(i == 3 && j == 2){
-					feld[i][j] = '_';
-				}
-				else{
-					feld[i][j] = NOPLAYER;
-				}				
-			}
-		}
-	}
-	
-	public void resetArena(){
-		
-	}
 }

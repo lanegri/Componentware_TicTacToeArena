@@ -6,7 +6,8 @@ public class GameClient {
 
 	public static void main(String[] args) {
 		
-		new GameArena().executeGame();
+//		new GameArena().executeGame();
+		new GameArena().showText();
 	}
 
 }

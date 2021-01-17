@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/junit-4.11.jar"/>
 	<classpathentry kind="lib" path="lib/reflections-0.9.9-RC1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/GlassFish Client"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/GlassFish Modules"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

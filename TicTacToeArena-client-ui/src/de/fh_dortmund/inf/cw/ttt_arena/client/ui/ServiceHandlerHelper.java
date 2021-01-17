@@ -1,7 +1,9 @@
 package de.fh_dortmund.inf.cw.ttt_arena.client.ui;
 
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ClientNotificationHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ServiceHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TicTacToeArenaHandler;
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TeamSessionHandler;
 
 import java.util.Set;
 
@@ -15,6 +17,8 @@ public class ServiceHandlerHelper {
 	private ServiceHandler serviceHandler;
 	  
 	private TicTacToeArenaHandler tttHandler;
+	private TeamSessionHandler userSessionHandler;
+	private ClientNotificationHandler notificationHandler;
 	
 //	private ServiceHandlerHelper() { 
 //		serviceHandler = ServiceHandler.getInstance();
@@ -53,6 +57,38 @@ public class ServiceHandlerHelper {
 	        System.out.println("TicTacToeArena-Handler must implement Service-Handler.");
 	      } 
 	    } 
+	    
+	    Set<Class<? extends TeamSessionHandler>> ushandlers = reflections.getSubTypesOf(TeamSessionHandler.class);
+	    if (ushandlers.size() > 1)
+	      throw new RuntimeException("There are more than one TicTacToeArena-Handler implemented."); 
+	    if (ushandlers.size() > 0) {
+	      Class<? extends TeamSessionHandler> tempHandler = ushandlers.iterator().next();
+	      if (ServiceHandler.class.isAssignableFrom(tempHandler)) {
+	        try {
+	          this.userSessionHandler = (TeamSessionHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	        } catch (Exception ex) {
+	          throw new RuntimeException("Error while getting the UserSessionHandler-Handler-Instance.");
+	        } 
+	      } else {
+	        System.out.println("UserSessionHandler-Handler must implement Service-Handler.");
+	      } 
+	    } 
+	    
+	    Set<Class<? extends ClientNotificationHandler>> nothandlers = reflections.getSubTypesOf(ClientNotificationHandler.class);
+	    if (nothandlers.size() > 1)
+	      throw new RuntimeException("There are more than one TicTacToeArena-Handler implemented."); 
+	    if (nothandlers.size() > 0) {
+	      Class<? extends ClientNotificationHandler> tempHandler = nothandlers.iterator().next();
+	      if (ServiceHandler.class.isAssignableFrom(tempHandler)) {
+	        try {
+	          this.notificationHandler = (ClientNotificationHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	        } catch (Exception ex) {
+	          throw new RuntimeException("Error while getting the UserSessionHandler-Handler-Instance.");
+	        } 
+	      } else {
+	        System.out.println("UserSessionHandler-Handler must implement Service-Handler.");
+	      } 
+	    } 
 	  }
 	
 	public static ServiceHandlerHelper getInstance() {
@@ -67,7 +103,15 @@ public class ServiceHandlerHelper {
 		
 	}
 	
+	public TeamSessionHandler getUserSessionHandler() {
+	    return this.userSessionHandler;
+    }
+	
 	public TicTacToeArenaHandler getTicTacToeArenaHandler() {
 		return this.tttHandler;
+	}
+	
+	public ClientNotificationHandler getNotificationHandler() {
+	    return this.notificationHandler;
 	}
 }
