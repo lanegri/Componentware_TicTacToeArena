@@ -9,8 +9,8 @@
     <destination-name>ObserverTopic</destination-name>
   </jms-destination>
   <jms-destination>
-    <name>java:global/jms/TokenQueue</name>
+    <name>java:global/jms/NotificationQueue</name>
     <interface-name>javax.jms.Queue</interface-name>
-    <destination-name>TokenQueue</destination-name>
+    <destination-name>NotificationQueue</destination-name>
   </jms-destination>
 </application>

@@ -1,48 +1,46 @@
 package de.fh_dortmund.inf.cw.ttt_arena.server.beans;
 
 import java.util.Date;
-import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
-import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
-import javax.jms.TextMessage;
 import javax.jms.Topic;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaLocal;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaRemote;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.Notification;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.NotificationType;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
 
-
-@Stateful
+@Stateless
 public class TicTacToeArenaBean implements TicTacToeArenaLocal, TicTacToeArenaRemote {
 	
-	
+	@Inject
+	private JMSContext context;
+	@Resource(lookup = "java:global/jms/ObserverTopic")
+	private Topic observerTopic;
 	
 	@Override
-	public char[][] play(char[][] feld, int i, int j, char player) {
+	public char[][] play(char[][] feld, int i, int j, char token) {
+		
+//		if(isFull(feld)) {
+//			sendTopic(ClientNotificationType.DRAW, "");
+//		}else {
+			if(feld[i][j] == ' ')
+				feld[i][j] = token;
+			else
+				System.out.println("Feld ist schon besetzt");
+		
+//			if(isWin(feld, token)) {
+//				sendTopic(ClientNotificationType.WIN, "");
+//			}
+//		}
 		
 		
-		if(feld[i][j] == ' ')
-			feld[i][j] = player;
-		else
-			System.out.println("Feld ist schon besetzt");
-			
+		
 		return feld;
 	}
 
@@ -74,28 +72,41 @@ public class TicTacToeArenaBean implements TicTacToeArenaLocal, TicTacToeArenaRe
 	};
 	
 	@Override
-	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char player) {
+	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char token) {
 		char p0 = feld[reihe[0][0]][reihe[0][1]];
 	    char p1 = feld[reihe[1][0]][reihe[1][1]];
 	    char p2 = feld[reihe[2][0]][reihe[2][1]];
-	    return p0 == player && p1 == player && p2 == player;
+	    return p0 == token && p1 == token && p2 == token;
 	}
 
-	@Override
-	public char isWin(char[][] feld) {
-		if(isWin(feld, 'X')) return 'X';
-	     if(isWin(feld, 'O')) return 'O';
-	     return '-';
-	}
+//	@Override
+//	public char isWin(char[][] feld, String team) {
+//		if(isWin(feld, 'X', team)) return 'X';
+//	     if(isWin(feld, 'O', team)) return 'O';
+//	     return '-';
+//	}
 
 	@Override
-	public boolean isWin(char[][] feld, char player) {
+	public boolean isWin(char[][] feld, char token) {
 		for(int[][] siegesReihe : SIEGESREIHEN) {
-	        if(playerWinOnRow(feld, siegesReihe, player)) {
+	        if(playerWinOnRow(feld, siegesReihe, token)) {
 	            return true;
 	        }
 	     }
 	     return false;
 	}
 	
+	public void sendTopic(ClientNotificationType notificationType, String sender) {
+		try {
+			
+			ClientNotification notification = new ClientNotification(notificationType, sender, new Date());
+			
+			ObjectMessage  om = context.createObjectMessage();
+			om.setObject(notification);
+			context.createProducer().send(observerTopic, om);
+			
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+	}
 }

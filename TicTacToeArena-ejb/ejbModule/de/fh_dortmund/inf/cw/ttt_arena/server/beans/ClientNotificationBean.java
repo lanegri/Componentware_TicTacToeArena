@@ -22,10 +22,11 @@ import javax.persistence.TypedQuery;
 
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.Notification;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.NotificationType;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
 
-@MessageDriven(mappedName = "java:global/jms/TokenQueue", activationConfig = {
+@MessageDriven(mappedName = "java:global/jms/NotificationQueue", activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
 	})
 public class ClientNotificationBean implements MessageListener {
@@ -50,22 +51,24 @@ public class ClientNotificationBean implements MessageListener {
 		
 		 teams = query.getResultList();
 	}
-	
+
 	
 	@Override
 	public void onMessage(Message message) {
 		try {
 			
 			TextMessage textMessage = (TextMessage) message;
-			String text = textMessage.getText();
+			int i = textMessage.getIntProperty("row");
+			int j = textMessage.getIntProperty("line");
 			
-			Notification chatMessage;
-			chatMessage = new Notification(NotificationType.TEXT,
-					textMessage.getStringProperty("MESSAGE_SENDER"), 
-					text, 
-					new Date());
+			ClientNotification notification;
+			notification = new ClientNotification(ClientNotificationType.TOKEN, textMessage.getStringProperty("MESSAGE_SENDER"), new Date());
+			notification.setToken(textMessage.getStringProperty("token").charAt(0));
+			notification.setRow(i);
+			notification.setLine(j);
+			
 			ObjectMessage  om = jmsContext.createObjectMessage();
-			om.setObject(chatMessage);
+			om.setObject(notification);
 			jmsContext.createProducer().send(observerTopic, om);
 			
 			

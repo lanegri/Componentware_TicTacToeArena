@@ -3,27 +3,26 @@ package de.fh_dortmund.inf.cw.ttt_arena.server.shared;
 import java.io.Serializable;
 import java.util.Date;
 
-public class Notification implements Serializable {
+public class ClientNotification implements Serializable {
 
 	
 	private static final long serialVersionUID = 3987031742488973869L;
 	
-	private NotificationType type;
+	private ClientNotificationType type;
 	private String sender;
-	private String text;
+//	private String text;
 	
 	private int row, line;
-	
+	private char token;
 	private Date date;
 	
-	public Notification(NotificationType type, String sender, String text, Date date) {
+	public ClientNotification(ClientNotificationType type, String sender, Date date) {
 		this.type = type;
 		this.setSender(sender);
-		this.setText(text);
 		this.setDate(date);
 	}
 	
-	public NotificationType getType() {
+	public ClientNotificationType getType() {
 		return type;
 	}
 
@@ -35,13 +34,13 @@ public class Notification implements Serializable {
 		this.sender = sender;
 	}
 
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
-	}
+//	public String getText() {
+//		return text;
+//	}
+//
+//	public void setText(String text) {
+//		this.text = text;
+//	}
 
 	public Date getDate() {
 		return date;
@@ -65,5 +64,13 @@ public class Notification implements Serializable {
 
 	public void setLine(int line) {
 		this.line = line;
+	}
+
+	public char getToken() {
+		return token;
+	}
+
+	public void setToken(char token) {
+		this.token = token;
 	}
 }

@@ -4,7 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.ObjectMessage;
+import javax.jms.Topic;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -12,9 +18,16 @@ import javax.persistence.TypedQuery;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
 
 @Stateless
 public class TeamManagementBean {
+	
+	@Inject
+	private JMSContext context;
+	@Resource(lookup = "java:global/jms/ObserverTopic")
+	private Topic observerTopic;
 	
 	@PersistenceContext(unitName = "TictactoearenaDB")
 	private EntityManager entityManager;
@@ -43,7 +56,7 @@ public class TeamManagementBean {
 		entityManager.persist(team);
 		entityManager.flush();
 		
-//		sendTopic(ChatMessageType.REGISTER, userName);
+		sendTopic(ClientNotificationType.REGISTER, name);
 		
 		return team;
 	}
@@ -73,21 +86,23 @@ public class TeamManagementBean {
 				
 		return currentTeam;
 	}
-
+	
 	public void logout(Team team) {
 		TeamStatistic stat = team.getStatistic();
 		team.setLoggedIn(false);
+		char c = 0;
+		team.setToken(c);
 		int logouts = stat.getLogouts();
 		logouts++;
 		stat.setLogouts(logouts);
 		entityManager.merge(team);
 		entityManager.flush();
 		
-//		sendTopic(ChatMessageType.LOGOUT, team.getUsername());
+		sendTopic(ClientNotificationType.LOGOUT, team.getName());
 	}
 
 	public void disconnect(Team team) {
-//		sendTopic(ChatMessageType.DISCONNECT, team.getUsername());
+		sendTopic(ClientNotificationType.DISCONNECT, team.getName());
 	}
 
 	public void delete(Team team) {
@@ -139,17 +154,17 @@ public class TeamManagementBean {
 		return (getNumberOfOnlineTeams() > 0) ? true : false;
 	}
 	
-//	public void sendTopic(ChatMessageType messageType, String sender) {
-//		try {
-//			
-//			ChatMessage chatMessage = new ChatMessage(messageType, sender,"" , new Date());
-//			
-//			ObjectMessage  om = context.createObjectMessage();
-//			om.setObject(chatMessage);
-//			context.createProducer().send(observerTopic, om);
-//			
-//		} catch (JMSException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	public void sendTopic(ClientNotificationType notificationType, String sender) {
+		try {
+			
+			ClientNotification notification = new ClientNotification(notificationType, sender, new Date());
+			
+			ObjectMessage  om = context.createObjectMessage();
+			om.setObject(notification);
+			context.createProducer().send(observerTopic, om);
+			
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+	}
 }

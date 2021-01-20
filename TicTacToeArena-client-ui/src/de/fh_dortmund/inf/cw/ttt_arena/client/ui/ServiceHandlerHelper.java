@@ -17,7 +17,7 @@ public class ServiceHandlerHelper {
 	private ServiceHandler serviceHandler;
 	  
 	private TicTacToeArenaHandler tttHandler;
-	private TeamSessionHandler userSessionHandler;
+	private TeamSessionHandler teamSessionHandler;
 	private ClientNotificationHandler notificationHandler;
 	
 //	private ServiceHandlerHelper() { 
@@ -65,7 +65,7 @@ public class ServiceHandlerHelper {
 	      Class<? extends TeamSessionHandler> tempHandler = ushandlers.iterator().next();
 	      if (ServiceHandler.class.isAssignableFrom(tempHandler)) {
 	        try {
-	          this.userSessionHandler = (TeamSessionHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	          this.teamSessionHandler = (TeamSessionHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
 	        } catch (Exception ex) {
 	          throw new RuntimeException("Error while getting the UserSessionHandler-Handler-Instance.");
 	        } 
@@ -103,15 +103,15 @@ public class ServiceHandlerHelper {
 		
 	}
 	
-	public TeamSessionHandler getUserSessionHandler() {
-	    return this.userSessionHandler;
+	public TeamSessionHandler getTeamSessionHandler() {
+	    return this.teamSessionHandler;
     }
 	
 	public TicTacToeArenaHandler getTicTacToeArenaHandler() {
 		return this.tttHandler;
 	}
 	
-	public ClientNotificationHandler getNotificationHandler() {
+	public ClientNotificationHandler getClientNotificationHandler() {
 	    return this.notificationHandler;
 	}
 }

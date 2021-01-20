@@ -12,6 +12,8 @@ import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TeamSessionRemote
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
 
 @Stateful
 public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
@@ -30,22 +32,40 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	@Override
 	public void register(String username) throws Exception {
 		teamManangement.register(username);
-//		management.sendTopic(ChatMessageType.REGISTER, userName);
+		teamManangement.sendTopic(ClientNotificationType.REGISTER, username);
 	}
 
 	@Override
-	public void login(String userName) throws Exception {
-		currentteam = teamManangement.login(userName);
-		if(currentteam != null && !currentteam.isLoggedIn()) {
-			currentteam.setLoggedIn(true);
-			currentteam.setLastLogin(new Date());
-//			management.sendTopic(ChatMessageType.LOGIN, currentUser.getUsername());
+	public void login(String username) throws Exception {
+		
+		if(getNumberOfOnlineTeams() < 2) {
 			
-		}else if(currentteam != null && currentteam.isLoggedIn()){
-			if(currentteam.getLastLogin() != null)
-				teamManangement.disconnect(currentteam);
+			currentteam = teamManangement.login(username);
+			if(currentteam != null && !currentteam.isLoggedIn()) {
+				
+				if(getNumberOfOnlineTeams() == 0) {
+					currentteam.setToken(PlayerToken.PLAYER_X);
+				}else {
+					currentteam.setToken(PlayerToken.PLAYER_O);
+				}
+				
+				currentteam.setLoggedIn(true);
+				currentteam.setLastLogin(new Date());
+				
+				teamManangement.sendTopic(ClientNotificationType.LOGIN, currentteam.getName());
+				
+			}
+//			else if(currentteam != null && currentteam.isLoggedIn()){
+//				if(currentteam.getLastLogin() != null)
+//					disconnect();
+//			}
+			else {
+				throw new Exception("Team mit deisen Name wurde leider nicht gefunden!");
+			}
+			
+			
 		}else {
-			throw new Exception("Name falsch");
+			disconnect();
 		}
 	}
 
@@ -57,7 +77,7 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 
 	@Override
 	public void disconnect() {
-
+		teamManangement.disconnect(currentteam);
 	}
 
 	@Override
@@ -65,7 +85,7 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	public void delete(String name) throws Exception {
 		if(currentteam.getName().trim().equals(name.trim())) {
 			teamManangement.delete(currentteam);
-//			teamManangement.sendTopic(ChatMessageType.LOGOUT, currentteam.getUsername());
+			teamManangement.sendTopic(ClientNotificationType.LOGOUT, currentteam.getName());
 		}else {
 			throw new Exception("Ihre angegebenen Name ist falsch");
 		}
@@ -83,7 +103,6 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 
 	@Override
 	public int getNumberOfOnlineTeams() {
-		// TODO Auto-generated method stub
 		return teamManangement.getNumberOfOnlineTeams();
 	}
 
@@ -101,6 +120,11 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	public List<Player> getTeammates() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public char getToken() {
+		return currentteam.getToken();
 	}
 
 }

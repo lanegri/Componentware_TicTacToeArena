@@ -18,6 +18,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
+
 @NamedQueries({
 	@NamedQuery(name = "Team.all", query = "SELECT t FROM Team t"),
 	@NamedQuery(name = "Team.login", query = "SELECT t FROM Team t WHERE t.name = :name"),
@@ -46,6 +48,7 @@ public class Team extends EntitiesInfo{
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date lastLogin;
 	
+	private char token;
 //	private List<Player> players;
 	
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -100,5 +103,13 @@ public class Team extends EntitiesInfo{
 
 	public void setLastLogin(Date lastLogin) {
 		this.lastLogin = lastLogin;
+	}
+
+	public char getToken() {
+		return token;
+	}
+
+	public void setToken(char token) {
+		this.token = token;
 	}
 }

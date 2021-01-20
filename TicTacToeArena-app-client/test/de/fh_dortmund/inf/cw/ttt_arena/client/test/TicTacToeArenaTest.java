@@ -1,26 +1,30 @@
 package de.fh_dortmund.inf.cw.ttt_arena.client.test;
 
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import de.fh_dortmund.inf.cw.ttt_arena.client.ServiceHandlerImpl;
 
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TicTacToeArenaTest {
 	
-	private static ServiceHandlerImpl serviceHandler;
-	
-	private static final char PLAYER_X = 'X';
-	private static final char PLAYER_O = 'O';
-	private static final char NOPLAYER =  ' ';
+//	private static ServiceHandlerImpl team_1, team_2;
+//	
+//	private static final char PLAYER_X = 'X';
+//	private static final char PLAYER_O = 'O';
+//	private static final char NOPLAYER =  ' ';
 	static char[][] feld;
-	
+		
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		serviceHandler = ServiceHandlerImpl.getInstance();
+		
 		feld = new char[3][3];
 	}
 	
@@ -29,24 +33,38 @@ public class TicTacToeArenaTest {
 	 */
 	@Before
 	public void fillArena(){
+		System.out.println("\nNeues Partie");
 		for(int i = 0; i < 3; i++){
 			for (int j = 0; j < 3; j++){
 				if(i == 3 && j == 2){
 					feld[i][j] = '_';
 				}
 				else{
-					feld[i][j] = NOPLAYER;
+					feld[i][j] = ' ';
 				}				
 			}
 		}
 	}
 	
 	/**
+	 *  Spielfeld ausgeben
+	 */
+	public void showArena(){
+		System.out.println( "   +-----+-----+----+");
+		for(int i = 0; i < 3; i++){
+			for (int j = 0; j < 3; j++){
+				System.out.print("   | " + feld[i][j]);
+			}
+			System.out.println("  |" + "\n"  + "   +-----+-----+----+");
+		}
+		
+	}
+	/**
 	 *  Spieler (X) gewinnt das Spiel auf die erste Spalte
 	 * @return true
 	 */
 	@Test
-	public void test001_playerX_win() {
+	public void test_03_playerX_win() {
 		assertTrue(playerX_win());
 	}
 	
@@ -55,7 +73,7 @@ public class TicTacToeArenaTest {
 	 * @return true
 	 */
 	@Test
-	public void test002_playerO_win() {
+	public void test_04_playerO_win() {
 		assertTrue(playerO_win());
 	}
 	
@@ -64,43 +82,50 @@ public class TicTacToeArenaTest {
 	 * @return false
 	 */
 	@Test
-	public void test003_draw_full() {
+	public void test_05_draw_full() {
 		assertTrue(draw_full());
 	}
+
 	
 	public boolean playerX_win() {
-		feld = serviceHandler.play(feld, 0, 0, PLAYER_X);
-		feld = serviceHandler.play(feld, 0, 1, PLAYER_O); 
-		feld = serviceHandler.play(feld, 1, 0, PLAYER_X);
-		feld = serviceHandler.play(feld, 2, 2, PLAYER_O);
-		feld = serviceHandler.play(feld, 2, 0, PLAYER_X);
-		
-	    return serviceHandler.isWin(feld, PLAYER_X);
+		feld = TeamSessionTest.getTeam_1().play(feld, 0, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 0, 1, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 1, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 2, 2, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 2, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+	    
+		System.out.println("Team Black Panther hat gewonnen \n Feld wird gelert");
+
+	    return TeamSessionTest.getTeam_1().isWin(feld, TeamSessionTest.getTeam_1().getToken());
 	}
 	
 	public boolean playerO_win() {
-		feld = serviceHandler.play(feld, 0, 1, PLAYER_X);
-		feld = serviceHandler.play(feld, 0, 0, PLAYER_O); 
-		feld = serviceHandler.play(feld, 1, 2, PLAYER_X);
-		feld = serviceHandler.play(feld, 1, 1, PLAYER_O);
-		feld = serviceHandler.play(feld, 2, 0, PLAYER_X);
-		feld = serviceHandler.play(feld, 2, 2, PLAYER_O);
+		feld = TeamSessionTest.getTeam_1().play(feld, 0, 1, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 0, 0, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 1, 2, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 1, 1, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 2, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 2, 2, TeamSessionTest.getTeam_2().getToken()); showArena();
 		
-	    return serviceHandler.isWin(feld, PLAYER_O);
+		System.out.println("Team King Lion hat gewonnen \n Feld wird gelert");
+		
+	    return TeamSessionTest.getTeam_2().isWin(feld, TeamSessionTest.getTeam_2().getToken());
 	}
 	
 	public boolean draw_full() {
-		feld = serviceHandler.play(feld, 0, 0, PLAYER_X);
-		feld = serviceHandler.play(feld, 1, 0, PLAYER_O); 
-		feld = serviceHandler.play(feld, 2, 0, PLAYER_X);
-		feld = serviceHandler.play(feld, 2, 2, PLAYER_O);
-		feld = serviceHandler.play(feld, 1, 1, PLAYER_X);
-		feld = serviceHandler.play(feld, 0, 1, PLAYER_O);
-		feld = serviceHandler.play(feld, 2, 1, PLAYER_X);
-		feld = serviceHandler.play(feld, 1, 2, PLAYER_O);
-		feld = serviceHandler.play(feld, 0, 2, PLAYER_X);
+		feld = TeamSessionTest.getTeam_1().play(feld, 0, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 1, 0, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 2, 0, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 2, 2, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 1, 1, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 0, 1, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 2, 1, TeamSessionTest.getTeam_1().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_2().play(feld, 1, 2, TeamSessionTest.getTeam_2().getToken()); showArena();
+		feld = TeamSessionTest.getTeam_1().play(feld, 0, 2, TeamSessionTest.getTeam_1().getToken()); showArena();
 		
-	    return serviceHandler.isFull(feld);
+		System.out.println("Unentschieden");
+		
+	    return TeamSessionTest.getTeam_1().isFull(feld);
 	}
 	
 }

@@ -25,21 +25,22 @@ import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaRem
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.Notification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
 
 @Singleton
 public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHandler, MessageListener, ClientNotificationHandler, TicTacToeArenaHandler {
 	
 	private JMSContext jmsContext;
 	private Topic observerTopic;
-	private Queue TokenQueue;
+	private Queue NotificationQueue;
 	
 	private static ServiceHandlerImpl instance;
 	private Context ctx;
 	private TeamSessionRemote teamsession;
 	private TicTacToeArenaRemote arena;
 	
-	private ServiceHandlerImpl() {
+	public ServiceHandlerImpl() {
 		try {
 			ctx = new InitialContext();
 			teamsession = (TeamSessionRemote) ctx.lookup("java:global/TicTacToeArena-ear/TicTacToeArena-ejb/TeamSessionBean!de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TeamSessionRemote");
@@ -47,13 +48,6 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 			
 		} catch (NamingException e) {
 			System.err.println(e.getMessage());
-		}
-		
-		try {
-			login("Black Panther");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
@@ -73,7 +67,7 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 			//Topic
 			observerTopic = (Topic) ctx.lookup("java:global/jms/ObserverTopic");
 			jmsContext.createConsumer(observerTopic).setMessageListener(this);
-			TokenQueue = (Queue) ctx.lookup("java:global/jms/TokenQueue");			
+			NotificationQueue = (Queue) ctx.lookup("java:global/jms/NotificationQueue");			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -133,7 +127,12 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 	public Team getTeam() {
 		return teamsession.getTeam();
 	}
-
+	
+	@Override
+	public char getToken() {
+		return teamsession.getToken();
+	}
+	
 	@Override
 	public List<Player> getTeammates() {
 		return teamsession.getTeammates();
@@ -146,24 +145,24 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 
 	
 	@Override
-	public char[][] play(char[][] feld, int i, int j, char player) {
-		return arena.play(feld, i, j, player);
+	public char[][] play(char[][] feld, int i, int j, char token) {
+		return arena.play(feld, i, j, token);
 	}
 
-	@Override
+//	@Override
 	public boolean isFull(char[][] feld) {
 		return arena.isFull(feld);
 	}
 
-	@Override
-	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char sp) {
-		return arena.playerWinOnRow(feld, reihe, sp);
-	}
+//	@Override
+//	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char sp) {
+//		return arena.playerWinOnRow(feld, reihe, sp);
+//	}
 
-	@Override
-	public char isWin(char[][] feld) {
-		return arena.isWin(feld);
-	}
+//	@Override
+//	public char isWin(char[][] feld) {
+//		return arena.isWin(feld, getTeamName());
+//	}
 
 	@Override
 	public boolean isWin(char[][] feld, char player) {
@@ -171,13 +170,15 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 	}
 
 	@Override
-	public void sendNotification(String text) {
+	public void sendNotification(int i, int j) {
 		try {
-			TextMessage message = jmsContext.createTextMessage();
-			message.setStringProperty("MESSAGE_SENDER", getTeamName());
-			message.setText(text);
+			TextMessage notification = jmsContext.createTextMessage();
+			notification.setStringProperty("MESSAGE_SENDER", getTeamName());
+			notification.setIntProperty("row", i);
+			notification.setIntProperty("line", j);
+			notification.setStringProperty("token", "" + getToken());
 						
-			jmsContext.createProducer().send(TokenQueue, message);
+			jmsContext.createProducer().send(NotificationQueue, notification);
 			
 		} catch (JMSException e) {
 			System.err.println("Error while notfy Observer via Topic" + e.getMessage());
@@ -192,9 +193,9 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 			
 			if(message.getJMSDestination().equals(observerTopic)) {
 				
-				if(o.getObject() instanceof Notification) {
+				if(o.getObject() instanceof ClientNotification) {
 					setChanged();
-					notifyObservers((Notification) o.getObject());
+					notifyObservers((ClientNotification) o.getObject());
 				}
 			}
 			
@@ -202,5 +203,6 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 			e.printStackTrace();
 		}
 	}
+
 
 }

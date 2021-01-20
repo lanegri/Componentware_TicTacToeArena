@@ -4,10 +4,9 @@ import de.fh_dortmund.inf.cw.ttt_arena.client.ui.GameArena;
 
 public class GameClient {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		
-//		new GameArena().executeGame();
-		new GameArena().showText();
+		new GameArena().executeGame();
 	}
 
 }

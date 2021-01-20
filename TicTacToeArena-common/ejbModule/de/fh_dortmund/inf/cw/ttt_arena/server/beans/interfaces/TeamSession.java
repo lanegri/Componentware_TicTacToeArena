@@ -19,4 +19,5 @@ public interface TeamSession {
 	public Team getTeam();
 	public List<Player> getTeammates();
 	public TeamStatistic getTeamStatistic();
+	public char getToken();
 }
