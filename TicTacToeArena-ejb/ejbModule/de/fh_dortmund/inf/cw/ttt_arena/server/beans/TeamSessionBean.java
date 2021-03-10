@@ -1,6 +1,5 @@
 package de.fh_dortmund.inf.cw.ttt_arena.server.beans;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.ejb.EJB;
@@ -10,57 +9,47 @@ import javax.ejb.Stateful;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TeamSessionLocal;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TeamSessionRemote;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
 import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
 import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
 
 @Stateful
 public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	
-	private Team currentteam;
+	private Player currentplayer;
 	@EJB
 	private TeamManagementBean teamManangement;
-	
-	public TeamSessionBean() {}
-	
-	@Override
-	public String getTeamName() {
-		return currentteam.getName();
-	}
-
-	@Override
-	public void register(String username) throws Exception {
-		teamManangement.register(username);
-		teamManangement.sendTopic(ClientNotificationType.REGISTER, username);
-	}
-
-	@Override
-	public void login(String username) throws Exception {
 		
-		if(getNumberOfOnlineTeams() < 2) {
+	@Override
+	public String getPlayerName() {
+		return currentplayer.getNickname();
+	}
+
+	@Override
+	public void registerTeam(String name) throws Exception {
+		teamManangement.register(name);
+		teamManangement.sendTopic(ClientNotificationType.REGISTER, name);
+	}
+
+	@Override
+	public void login(String nickname) throws Exception {
+		
+		if(getNumberOfOnlinePlayers() < 2) {
 			
-			currentteam = teamManangement.login(username);
-			if(currentteam != null && !currentteam.isLoggedIn()) {
+			currentplayer = teamManangement.login(nickname);
+			if(currentplayer != null && !currentplayer.isLoggedIn()) {
 				
-				if(getNumberOfOnlineTeams() == 0) {
-					currentteam.setToken(PlayerToken.PLAYER_X);
+				if(!teamManangement.isAnyPlayerOnline()) {
+					currentplayer.setToken(PlayerToken.PLAYER_X);
 				}else {
-					currentteam.setToken(PlayerToken.PLAYER_O);
+					currentplayer.setToken(PlayerToken.PLAYER_O);
 				}
 				
-				currentteam.setLoggedIn(true);
-				currentteam.setLastLogin(new Date());
+				currentplayer.setLoggedIn(true);
 				
-				teamManangement.sendTopic(ClientNotificationType.LOGIN, currentteam.getName());
+				teamManangement.sendTopic(ClientNotificationType.LOGIN, currentplayer.getNickname());
 				
-			}
-//			else if(currentteam != null && currentteam.isLoggedIn()){
-//				if(currentteam.getLastLogin() != null)
-//					disconnect();
-//			}
-			else {
-				throw new Exception("Team mit deisen Name wurde leider nicht gefunden!");
+			} else {
+				throw new Exception("Spieler mit deisen Name wurde leider nicht gefunden oder Sie sing schon eingeloggt!");
 			}
 			
 			
@@ -70,30 +59,26 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	}
 
 	@Override
-	@Remove
+	@Remove()
 	public void logout() {
-		teamManangement.logout(currentteam);
+		teamManangement.logout(currentplayer);
+		currentplayer = null;
 	}
 
 	@Override
 	public void disconnect() {
-		teamManangement.disconnect(currentteam);
+		teamManangement.disconnect(currentplayer);
 	}
 
 	@Override
 	@Remove(retainIfException = true)
-	public void delete(String name) throws Exception {
-		if(currentteam.getName().trim().equals(name.trim())) {
-			teamManangement.delete(currentteam);
-			teamManangement.sendTopic(ClientNotificationType.LOGOUT, currentteam.getName());
+	public void delete(String nickname) throws Exception {
+		if(currentplayer.getNickname().trim().equals(nickname.trim())) {
+			teamManangement.delete(currentplayer);
+			teamManangement.sendTopic(ClientNotificationType.LOGOUT, currentplayer.getNickname());
 		}else {
 			throw new Exception("Ihre angegebenen Name ist falsch");
 		}
-	}
-
-	@Override
-	public List<String> getOnlineTeams() {
-		return teamManangement.getOnlineTeams();
 	}
 
 	@Override
@@ -102,29 +87,27 @@ public class TeamSessionBean implements TeamSessionLocal, TeamSessionRemote {
 	}
 
 	@Override
-	public int getNumberOfOnlineTeams() {
-		return teamManangement.getNumberOfOnlineTeams();
-	}
-
-	@Override
-	public Team getTeam() {
-		return currentteam;
-	}
-
-	@Override
-	public TeamStatistic getTeamStatistic() {
-		return teamManangement.getTeamStatistic(currentteam);
-	}
-
-	@Override
-	public List<Player> getTeammates() {
-		// TODO Auto-generated method stub
+	public List<String> getOnlinePlayersNames() {
 		return null;
 	}
 
 	@Override
-	public char getToken() {
-		return currentteam.getToken();
+	public Player getCurrentPlayer() {
+		return this.currentplayer;
 	}
 
+	@Override
+	public void addPlayer(String nickname) throws Exception {
+		teamManangement.addPlayer(this.currentplayer, nickname);
+	}
+
+	@Override
+	public int getNumberOfOnlinePlayers() {
+		return teamManangement.getNumberOfOnlinePlayers();
+	}
+	
+	@Override
+	public int getNumberOfTeamPlayers() {
+		return this.teamManangement.getNumberOfTeamPlayers(this.currentplayer.getTeam().getId());
+	}
 }

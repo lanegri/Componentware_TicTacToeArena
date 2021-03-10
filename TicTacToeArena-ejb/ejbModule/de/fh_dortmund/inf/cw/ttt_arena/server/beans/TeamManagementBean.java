@@ -17,9 +17,9 @@ import javax.persistence.TypedQuery;
 
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
 import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
 import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotificationType;
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerRole;
 
 @Stateless
 public class TeamManagementBean {
@@ -31,10 +31,8 @@ public class TeamManagementBean {
 	
 	@PersistenceContext(unitName = "TictactoearenaDB")
 	private EntityManager entityManager;
-	
-	public TeamManagementBean() {}
-	
-	public Team register(String name) throws Exception {
+		
+	public Team register(String name) throws Exception { 
 		TypedQuery<Team> query = entityManager.createNamedQuery("Team.all", Team.class);
 		
 		List<Team> teams = query.getResultList();
@@ -43,80 +41,91 @@ public class TeamManagementBean {
 				throw new Exception("Team mit dieser Name ist schon vorhanden");
 			}
 		}
-		
-		TeamStatistic stat = new TeamStatistic();
-		stat.setLogins(0);
-		stat.setLogouts(0);
+
+		Player owner = new Player();
+		owner.setNickname(name + " OWNER");
+		owner.setRole(PlayerRole.OWNER);
 		
 		Team team = new Team();
 		team.setName(name);
-		team.setStatistic(stat);
-//		user.setCreatedAt(new Date());
+		team.addPlayer(owner);
 		
 		entityManager.persist(team);
 		entityManager.flush();
+		entityManager.clear();
 		
 		sendTopic(ClientNotificationType.REGISTER, name);
 		
 		return team;
 	}
-
-	public Team login(String name) {
-		Team currentTeam = null;
-		TeamStatistic stat;
-		
-		TypedQuery<Team> query = entityManager.createNamedQuery("Team.all", Team.class);
-		
-		List<Team> teams = query.getResultList();
-		
-		for(Team team: teams) {
-			if(team.getName().trim().equals(name.trim())) {
-
-				currentTeam = team;
-				
-				stat = currentTeam.getStatistic();
-				stat.setLastLogin(new Date());
-				int logins = stat.getLogins();
-				logins++;
-				stat.setLogins(logins);
-				
-				currentTeam.setStatistic(stat);
-			}
-		}
-				
-		return currentTeam;
+	
+	public Player getPlayerByNick(String nickname) {
+		TypedQuery<Player> query = entityManager.createNamedQuery("Player.findbynickname", Player.class);
+		query.setParameter("nickname", nickname);
+		Player player = query.getSingleResult();
+		return player;
 	}
 	
-	public void logout(Team team) {
-		TeamStatistic stat = team.getStatistic();
-		team.setLoggedIn(false);
-		char c = 0;
-		team.setToken(c);
-		int logouts = stat.getLogouts();
-		logouts++;
-		stat.setLogouts(logouts);
-		entityManager.merge(team);
+	public void addPlayer(Player player, String nickname) throws Exception {
+		
+		if(player.isOwner()  && player.isLoggedIn()) {
+			
+			TypedQuery<Player> player_query = entityManager.createNamedQuery("Player.all", Player.class);
+			List<Player> players = player_query.getResultList();
+			
+			for(Player p: players) {
+				if(p.getNickname().equals(nickname)) {
+					throw new Exception("Spieler mit dieser Spitzname ist schon vorhanden");
+				}
+			}
+			
+			TypedQuery<Team> query = entityManager.createNamedQuery("Team.findbyname", Team.class);
+			query.setParameter("name", player.getTeam().getName());
+			
+			Team team = query.getSingleResult();
+			
+			Player newPlayer = new Player();
+			newPlayer.setNickname(nickname);
+			newPlayer.setRole(PlayerRole.MEMBER);
+			
+			team.addPlayer(newPlayer);
+			entityManager.merge(team);
+			entityManager.flush();
+			entityManager.clear();
+		}else {
+			throw new Exception("Current Player hat kein Zugriff auf diese Feature");
+		}
+	}
+	
+	public Player login(String nickname) {
+		Player currentPlayer = null;
+		
+		TypedQuery<Player> query = entityManager.createNamedQuery("Player.findbynickname", Player.class);
+		query.setParameter("nickname", nickname);
+		
+		currentPlayer = query.getSingleResult();
+				
+		return currentPlayer;
+	}
+	
+	public void logout(Player player) {
+		player.setLoggedIn(false);
+
+		player.setToken((char) 0);
+
+		entityManager.merge(player);
 		entityManager.flush();
 		
-		sendTopic(ClientNotificationType.LOGOUT, team.getName());
+		sendTopic(ClientNotificationType.LOGOUT, player.getNickname());
 	}
 
-	public void disconnect(Team team) {
-		sendTopic(ClientNotificationType.DISCONNECT, team.getName());
+	public void disconnect(Player player) {
+		sendTopic(ClientNotificationType.DISCONNECT, player.getNickname());
 	}
 
-	public void delete(Team team) {
-		team = entityManager.merge(team);
-		entityManager.remove(team);
+	public void delete(Player player) {
+		entityManager.remove(player);
 		entityManager.flush();
-	}
-
-	public List<String> getOnlineTeams() {
-		TypedQuery<String> query = entityManager.createNamedQuery("Team.online", String.class);
-		
-		List<String> onlineUsers = query.getResultList();
-		
-		return new ArrayList<String>(onlineUsers);
 	}
 
 	public int getNumberOfRegisteredTeams() {
@@ -124,40 +133,46 @@ public class TeamManagementBean {
 		
 		return query.getSingleResult().intValue();
 	}
+	
+	public List<String> getOnlinePlayersNames() {
+		TypedQuery<String> query = entityManager.createNamedQuery("Player.online", String.class);
+		
+		List<String> onlineUsers = query.getResultList();
+		
+		return new ArrayList<String>(onlineUsers);
+	}
 
-	public int getNumberOfOnlineTeams() {
-		TypedQuery<Number> query = entityManager.createNamedQuery("Team.onlinenbr", Number.class);
+	public int getNumberOfRegisteredPlayers() {
+		TypedQuery<Number> query = entityManager.createNamedQuery("Player.allnbr", Number.class);
 		
 		return query.getSingleResult().intValue();
 	}
 
- 
-	public TeamStatistic getTeamStatistic(Team team) {
-		TypedQuery<Team> query = entityManager.createNamedQuery("Team.all", Team.class);
+	public int getNumberOfOnlinePlayers() {
+		TypedQuery<Number> query = entityManager.createNamedQuery("Player.onlinenbr", Number.class);
 		
-		List<Team> teams = query.getResultList();
-		
-		for(Team t: teams) {
-			if(t.getName().trim().equals(team.getName().trim())) {
-				team = t;
-			}
-		}
-		return team.getStatistic();
+		return query.getSingleResult().intValue();
 	}
 	
 	public List<Player> getTeammates() {
 		return null;
 	}
 	
-	public boolean isAnyUseronline() {
+	public int getNumberOfTeamPlayers(int id) {
+		TypedQuery<Number> query = entityManager.createNamedQuery("Player.allnbrTeam", Number.class);
+		query.setParameter("id", id);
+		return query.getSingleResult().intValue();
+	}
 		
-		return (getNumberOfOnlineTeams() > 0) ? true : false;
+	public boolean isAnyPlayerOnline() {
+		
+		return (getNumberOfOnlinePlayers() > 0) ? true : false;
 	}
 	
-	public void sendTopic(ClientNotificationType notificationType, String sender) {
+	public void sendTopic(ClientNotificationType notificationType, String player) {
 		try {
 			
-			ClientNotification notification = new ClientNotification(notificationType, sender, new Date());
+			ClientNotification notification = new ClientNotification(notificationType, player, new Date());
 			
 			ObjectMessage  om = context.createObjectMessage();
 			om.setObject(notification);

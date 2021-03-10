@@ -1,7 +1,7 @@
 package de.fh_dortmund.inf.cw.ttt_arena.server.entities;
 
-import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -11,21 +11,14 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
+import javax.persistence.OneToMany;
 
 @NamedQueries({
 	@NamedQuery(name = "Team.all", query = "SELECT t FROM Team t"),
-	@NamedQuery(name = "Team.login", query = "SELECT t FROM Team t WHERE t.name = :name"),
-	@NamedQuery(name = "Team.allnbr", query = "SELECT COUNT(t) FROM Team t"),
-	@NamedQuery(name = "Team.online", query = "SELECT t.name FROM Team t WHERE t.loggedIn = 1"),
-	@NamedQuery(name = "Team.onlinenbr", query = "SELECT COUNT(t) FROM Team t WHERE t.loggedIn = 1")
+	@NamedQuery(name = "Team.findbyname", query = "SELECT t FROM Team t WHERE t.name = :name"),
+	@NamedQuery(name = "Team.allnbr", query = "SELECT COUNT(t) FROM Team t")
 })
 @Entity
 public class Team extends EntitiesInfo{
@@ -42,35 +35,23 @@ public class Team extends EntitiesInfo{
 	@Basic(optional = false)
 	@Column(nullable = false)
 	private String name;
-	@Column
-	private boolean loggedIn = false;
-	@Column
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date lastLogin;
 	
-	private char token;
-//	private List<Player> players;
+	@OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, mappedBy="team")
+	private Set<Player> players = new HashSet<>();
 	
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "STATISTIC_ID", referencedColumnName = "id", unique = true)
-	private TeamStatistic statistic;
+	public Team() {	}
 	
-	public Team() {}
-	
-//	public List<Player> getPlayers() {
-//		return players;
-//	}
-//
-//	public void addPlayer(Player player) {
-//		this.players.add(player);
-//	}
+	public Set<Player> getPlayers() {
+		return players;
+	}
+
+	public void addPlayer(Player player) {
+		player.setTeam(this);
+		this.players.add(player);
+	}
 
 	public int getId() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String getName() {
@@ -81,35 +62,4 @@ public class Team extends EntitiesInfo{
 		this.name = name;
 	}
 
-	public TeamStatistic getStatistic() {
-		return statistic;
-	}
-
-	public void setStatistic(TeamStatistic statistic) {
-		this.statistic = statistic;
-	}
-
-	public boolean isLoggedIn() {
-		return loggedIn;
-	}
-
-	public void setLoggedIn(boolean loggedIn) {
-		this.loggedIn = loggedIn;
-	}
-
-	public Date getLastLogin() {
-		return lastLogin;
-	}
-
-	public void setLastLogin(Date lastLogin) {
-		this.lastLogin = lastLogin;
-	}
-
-	public char getToken() {
-		return token;
-	}
-
-	public void setToken(char token) {
-		this.token = token;
-	}
 }

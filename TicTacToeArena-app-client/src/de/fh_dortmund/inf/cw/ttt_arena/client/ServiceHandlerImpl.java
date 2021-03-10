@@ -16,20 +16,17 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ClientNotificationHandler;
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.GameHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ServiceHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TeamSessionHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TicTacToeArenaHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TeamSessionRemote;
 import de.fh_dortmund.inf.cw.ttt_arena.server.beans.interfaces.TicTacToeArenaRemote;
 import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Player;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.Team;
-import de.fh_dortmund.inf.cw.ttt_arena.server.entities.TeamStatistic;
 import de.fh_dortmund.inf.cw.ttt_arena.server.shared.ClientNotification;
-import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerToken;
 
 @Singleton
-public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHandler, MessageListener, ClientNotificationHandler, TicTacToeArenaHandler {
+public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHandler, MessageListener, GameHandler, TicTacToeArenaHandler {
 	
 	private JMSContext jmsContext;
 	private Topic observerTopic;
@@ -49,6 +46,7 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 		} catch (NamingException e) {
 			System.err.println(e.getMessage());
 		}
+		
 	}
 	
 	public static ServiceHandlerImpl getInstance() {
@@ -75,14 +73,8 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 	}
 	
 	@Override
-	public String getTeamName() {
-
-		return teamsession.getTeamName();
-	}
-
-	@Override
-	public void register(String name) throws Exception {
-		teamsession.register(name);
+	public void registerTeam(String name) throws Exception {
+		teamsession.registerTeam(name);
 	}
 
 	@Override
@@ -109,74 +101,71 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 	}
 
 	@Override
-	public List<String> getOnlineTeams() {
-		return teamsession.getOnlineTeams();
-	}
-
-	@Override
 	public int getNumberOfRegisteredTeams() {
 		return teamsession.getNumberOfRegisteredTeams();
 	}
-
-	@Override
-	public int getNumberOfOnlineTeams() {
-		return teamsession.getNumberOfOnlineTeams();
-	}
-
-	@Override
-	public Team getTeam() {
-		return teamsession.getTeam();
-	}
 	
 	@Override
-	public char getToken() {
-		return teamsession.getToken();
-	}
-	
-	@Override
-	public List<Player> getTeammates() {
-		return teamsession.getTeammates();
+	public List<String> getOnlinePlayersNames() {
+		return null;
 	}
 
 	@Override
-	public TeamStatistic getTeamStatistic() {
-		return teamsession.getTeamStatistic();
+	public String getPlayerName() {
+		return teamsession.getPlayerName();
 	}
 
-	
 	@Override
-	public char[][] play(char[][] feld, int i, int j, char token) {
-		return arena.play(feld, i, j, token);
+	public int getNumberOfOnlinePlayers() {
+		return teamsession.getNumberOfOnlinePlayers();
+	}
+
+	@Override
+	public void addPlayer(String nickname) throws Exception {
+		teamsession.addPlayer(nickname);
+	}
+
+	@Override
+	public Player getCurrentPlayer() {
+		return teamsession.getCurrentPlayer();
 	}
 
 //	@Override
-	public boolean isFull(char[][] feld) {
-		return arena.isFull(feld);
-	}
-
-//	@Override
-//	public boolean playerWinOnRow(char[][] feld, int[][] reihe, char sp) {
-//		return arena.playerWinOnRow(feld, reihe, sp);
+//	public Player getPlayerByNick(String nickname) {
+//		return teamsession.getPlayerByNick(nickname);
 //	}
-
-//	@Override
-//	public char isWin(char[][] feld) {
-//		return arena.isWin(feld, getTeamName());
-//	}
-
+	
 	@Override
-	public boolean isWin(char[][] feld, char player) {
-		return arena.isWin(feld, player);
+	public void startGame() {
+		arena.startGame();
+	}
+	
+	@Override
+	public void set(int index, String name, char token) {
+		try {
+			arena.set(index, name, token);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public boolean isFull() {
+		return arena.isFull();
 	}
 
 	@Override
-	public void sendNotification(int i, int j) {
+	public String finishAsVictory(String name) {
+		return arena.finishAsVictory(name);
+	}
+	
+	@Override
+	public void play(int i) {
 		try {
 			TextMessage notification = jmsContext.createTextMessage();
-			notification.setStringProperty("MESSAGE_SENDER", getTeamName());
-			notification.setIntProperty("row", i);
-			notification.setIntProperty("line", j);
-			notification.setStringProperty("token", "" + getToken());
+			notification.setIntProperty("index", i);
+			notification.setStringProperty("player", getCurrentPlayer().getNickname());
+			notification.setStringProperty("token", "" + getCurrentPlayer().getToken());
 						
 			jmsContext.createProducer().send(NotificationQueue, notification);
 			
@@ -188,6 +177,7 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 
 	@Override
 	public void onMessage(Message message) {
+		
 		ObjectMessage o = (ObjectMessage)message;
 		try {
 			
@@ -203,6 +193,14 @@ public class ServiceHandlerImpl extends ServiceHandler implements TeamSessionHan
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public int getNumberOfTeamPlayers() {
+		return this.teamsession.getNumberOfTeamPlayers();
+	}
 
-
+	@Override
+	public char[] getArena() {
+		return this.arena.getArena();
+	}
 }

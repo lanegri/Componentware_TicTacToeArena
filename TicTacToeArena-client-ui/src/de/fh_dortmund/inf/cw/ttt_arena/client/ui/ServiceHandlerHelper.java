@@ -1,6 +1,6 @@
 package de.fh_dortmund.inf.cw.ttt_arena.client.ui;
 
-import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ClientNotificationHandler;
+import de.fh_dortmund.inf.cw.ttt_arena.client.shared.GameHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.ServiceHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TicTacToeArenaHandler;
 import de.fh_dortmund.inf.cw.ttt_arena.client.shared.TeamSessionHandler;
@@ -18,7 +18,7 @@ public class ServiceHandlerHelper {
 	  
 	private TicTacToeArenaHandler tttHandler;
 	private TeamSessionHandler teamSessionHandler;
-	private ClientNotificationHandler notificationHandler;
+	private GameHandler notificationHandler;
 	
 //	private ServiceHandlerHelper() { 
 //		serviceHandler = ServiceHandler.getInstance();
@@ -74,14 +74,14 @@ public class ServiceHandlerHelper {
 	      } 
 	    } 
 	    
-	    Set<Class<? extends ClientNotificationHandler>> nothandlers = reflections.getSubTypesOf(ClientNotificationHandler.class);
+	    Set<Class<? extends GameHandler>> nothandlers = reflections.getSubTypesOf(GameHandler.class);
 	    if (nothandlers.size() > 1)
 	      throw new RuntimeException("There are more than one TicTacToeArena-Handler implemented."); 
 	    if (nothandlers.size() > 0) {
-	      Class<? extends ClientNotificationHandler> tempHandler = nothandlers.iterator().next();
+	      Class<? extends GameHandler> tempHandler = nothandlers.iterator().next();
 	      if (ServiceHandler.class.isAssignableFrom(tempHandler)) {
 	        try {
-	          this.notificationHandler = (ClientNotificationHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
+	          this.notificationHandler = (GameHandler)tempHandler.getMethod("getInstance", new Class[0]).invoke(null, new Object[0]);
 	        } catch (Exception ex) {
 	          throw new RuntimeException("Error while getting the UserSessionHandler-Handler-Instance.");
 	        } 
@@ -111,7 +111,7 @@ public class ServiceHandlerHelper {
 		return this.tttHandler;
 	}
 	
-	public ClientNotificationHandler getClientNotificationHandler() {
+	public GameHandler getClientNotificationHandler() {
 	    return this.notificationHandler;
 	}
 }

@@ -1,35 +1,32 @@
 package de.fh_dortmund.inf.cw.ttt_arena.server.entities;
 
-import java.util.Date;
-
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
+import de.fh_dortmund.inf.cw.ttt_arena.server.shared.PlayerRole;
 
 @NamedQueries({
 	@NamedQuery(name = "Player.all", query = "SELECT p FROM Player p"),
-	@NamedQuery(name = "Player.login", query = "SELECT p FROM Player p WHERE p.username = :username"),
+	@NamedQuery(name = "Player.findbynickname", query = "SELECT p FROM Player p WHERE p.nickname = :nickname"),
 	@NamedQuery(name = "Player.allnbr", query = "SELECT COUNT(p) FROM Player p"),
-	@NamedQuery(name = "Player.online", query = "SELECT p.username FROM Player p WHERE p.loggedIn = 1"),
+	@NamedQuery(name = "Player.allnbrTeam", query = "SELECT COUNT(p) FROM Player p WHERE p.team.id = :id"),
+	@NamedQuery(name = "Player.online", query = "SELECT p.nickname FROM Player p WHERE p.loggedIn = 1"),
 	@NamedQuery(name = "Player.onlinenbr", query = "SELECT COUNT(p) FROM Player p WHERE p.loggedIn = 1")
 })
 @Entity
 public class Player extends EntitiesInfo{
-/**
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-//	public static final char PLAYER_X = 'X';
-//	public static final char PLAYER_O = 'O';
-//	public static final char NOPLAYER =  ' ';
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,33 +34,22 @@ public class Player extends EntitiesInfo{
 	
 	@Basic(optional = false)
 	@Column(nullable = false)
-	private String username;
-	
+	private String nickname;
+	private char token;
+	@ManyToOne(cascade=CascadeType.ALL)
+	private Team team;
 	@Column
 	private boolean loggedIn = false;
 	
-	@Column
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date lastLogin;
+	private PlayerRole role;
+//	@Column
+//	@Temporal(TemporalType.TIMESTAMP)
+//	private Date lastLogin;
 	
 	public Player() {}
 	
-	public Player(int id, String username) { 
-		this.id = id;
-		this.username = username;
-	}
-	
 	public int getId() {
 		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getUsername() {
-		return username;
-	}
-	public void setUsername(String username) {
-		this.username = username;
 	}
 
 	public boolean isLoggedIn() {
@@ -73,12 +59,48 @@ public class Player extends EntitiesInfo{
 	public void setLoggedIn(boolean loggedIn) {
 		this.loggedIn = loggedIn;
 	}
-
-	public Date getLastLogin() {
-		return lastLogin;
+//
+//	public Date getLastLogin() {
+//		return lastLogin;
+//	}
+//
+//	public void setLastLogin(Date lastLogin) {
+//		this.lastLogin = lastLogin;
+//	}
+	
+	public String getNickname() {
+		return nickname;
 	}
 
-	public void setLastLogin(Date lastLogin) {
-		this.lastLogin = lastLogin;
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
+	
+	public char getToken() {
+		return token;
+	}
+
+	public void setToken(char token) {
+		this.token = token;
+	}
+
+	public Team getTeam() {
+		return team;
+	}
+
+	public void setTeam(Team team) {
+		this.team = team;
+	}
+
+	public PlayerRole getRole() {
+		return this.role;
+	}
+	
+	public void setRole(PlayerRole role) {
+		this.role = role;
+	}
+	
+	public boolean isOwner() {
+		return this.role == PlayerRole.OWNER;
 	}
 }

@@ -1,8 +1,10 @@
 package de.fh_dortmund.inf.cw.ttt_arena.client.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.AfterClass;
+import javax.ejb.NoSuchEJBException;
+
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -26,77 +28,47 @@ public class TeamSessionTest {
 	 *  Anzahl Teams auf 2 erhöt wird
 	 * @throws Exception
 	 */
-	//Team 1
 	@Test 
-	public void test_01_register_team_1() throws Exception {
+	public void test_01_register_team_1_2() throws Exception {
 		int teams = team_1.getNumberOfRegisteredTeams();
-		team_1.register("Black Panther");
-		team_2.register("King Lion");
+		team_1.registerTeam("Black Panther");
+		team_2.registerTeam("King Lion");
 		assertEquals(teams + 2, team_1.getNumberOfRegisteredTeams());
 	}
 	
-	
-	/**
-	 *  Team einloggen und Team Name zurück liefern
-	 *  Prüfen ob Anzahl online Teams auf 1 erhöht wird
-	 * @throws Exception
-	 */
 	@Test 
-	public void test_02_login_team_1() throws Exception {
-		int onlineTeams = team_1.getNumberOfOnlineTeams();
+	public void test_02_login_Admins() throws Exception {
+		int onlinePlayers = team_1.getNumberOfOnlinePlayers();
 		
-		team_1.login("Black Panther");
-		assertTrue("Black Panther".equals(team_1.getTeamName()));
+		team_1.login("Black Panther OWNER");
+		assertTrue("Black Panther OWNER".equals(team_1.getPlayerName()));
 		
-		team_2.login("King Lion");
-		assertTrue("King Lion".equals(team_2.getTeamName()));
+		team_2.login("King Lion OWNER");
+		assertTrue("King Lion OWNER".equals(team_2.getPlayerName()));
 		
-		System.out.println("\"" + team_1.getTeamName() + "\" hat sich eingeloggt" );
-		System.out.println("\"" + team_2.getTeamName() + "\" hat sich eingeloggt" );
-		
-		assertEquals(onlineTeams + 2, team_1.getNumberOfOnlineTeams());
+		assertEquals(onlinePlayers + 2, team_1.getNumberOfOnlinePlayers());
 	}
 	
-//	@AfterClass
-//	void clear() throws Exception {
-//		team_1.delete("Black Panther");
-//		team_1.delete("King Lion");
-//	}
+	@Test 
+	public void test_03_add_players_to_team_1() throws Exception {
+		team_1.addPlayer("Panther One");
+		team_1.addPlayer("Panther Two");
+		assertEquals(3, team_1.getNumberOfTeamPlayers());
+	}
 	
-	/**
-	 * Current Team ausloggen
-	 * @throws Exception
-	 */
-//	@Test 
-//	public void test_03_logout() throws Exception {
-//		serviceHandler.logout();
-//		assertNull(serviceHandler.getTeamName());
-//	}
+	@Test 
+	public void test_04_add_players_to_team_2() throws Exception {
+		team_2.addPlayer("Lion One");
+		team_2.addPlayer("Lion Two");
+		assertEquals(3, team_2.getNumberOfTeamPlayers());
+	}
 	
-	/**
-	 *  Team löschen und Anzahl registrierten Teams prüfen (-1)
-	 * @throws Exception
-	 */
-//	@Test 
-//	public void test_05_delete() throws Exception {
-//		int usersbefore = serviceHandler.getNumberOfRegisteredTeams();
-//		serviceHandler.delete("King Lion");
-//		assertEquals(usersbefore - 1, serviceHandler.getNumberOfRegisteredTeams());
-//	}
+	@Test(expected = NoSuchEJBException.class)
+	public void test_05_clear_logins() throws Exception {
+		team_1.logout();
+		team_2.logout();
+		team_1.getCurrentPlayer();
+		team_2.getCurrentPlayer();
+	}
 	
-	public static ServiceHandlerImpl getTeam_1() {
-		return team_1;
-	}
-
-	public static void setTeam_1(ServiceHandlerImpl team_1) {
-		TeamSessionTest.team_1 = team_1;
-	}
-
-	public static ServiceHandlerImpl getTeam_2() {
-		return team_2;
-	}
-
-	public static void setTeam_2(ServiceHandlerImpl team_2) {
-		TeamSessionTest.team_2 = team_2;
-	}
 }

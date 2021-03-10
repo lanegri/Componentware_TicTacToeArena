@@ -9,16 +9,14 @@ public class ClientNotification implements Serializable {
 	private static final long serialVersionUID = 3987031742488973869L;
 	
 	private ClientNotificationType type;
-	private String sender;
-//	private String text;
-	
-	private int row, line;
+	private String player;
+	private int index;
 	private char token;
 	private Date date;
 	
-	public ClientNotification(ClientNotificationType type, String sender, Date date) {
+	public ClientNotification(ClientNotificationType type, String player, Date date) {
 		this.type = type;
-		this.setSender(sender);
+		this.setPlayer(player);
 		this.setDate(date);
 	}
 	
@@ -26,21 +24,13 @@ public class ClientNotification implements Serializable {
 		return type;
 	}
 
-	public String getSender() {
-		return sender;
+	public String getPlayer() {
+		return player;
 	}
 
-	public void setSender(String sender) {
-		this.sender = sender;
+	public void setPlayer(String player) {
+		this.player = player;
 	}
-
-//	public String getText() {
-//		return text;
-//	}
-//
-//	public void setText(String text) {
-//		this.text = text;
-//	}
 
 	public Date getDate() {
 		return date;
@@ -50,27 +40,19 @@ public class ClientNotification implements Serializable {
 		this.date = date;
 	}
 
-	public int getRow() {
-		return row;
-	}
-
-	public void setRow(int row) {
-		this.row = row;
-	}
-
-	public int getLine() {
-		return line;
-	}
-
-	public void setLine(int line) {
-		this.line = line;
-	}
-
 	public char getToken() {
 		return token;
 	}
 
 	public void setToken(char token) {
 		this.token = token;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }
